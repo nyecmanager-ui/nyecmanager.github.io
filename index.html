@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#ffd84d">
+<title>왕벌의 비행 · 리듬 타일</title>
+<style>
+:root{--ink:#151515;--yellow:#ffd84d;--cream:#fff9e8;--pink:#ff7595;--sky:#bde8ff}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;font-family:system-ui,-apple-system,"Pretendard","Noto Sans KR",sans-serif;background:#ffd84d;color:var(--ink)}
+button,select{font:inherit}
+#app{position:relative;width:min(100vw,540px);height:100dvh;margin:auto;overflow:hidden;background:linear-gradient(#fff8c9 0%,#ffe16b 100%);box-shadow:0 0 55px rgba(0,0,0,.2)}
+header{position:absolute;z-index:30;top:0;left:0;right:0;height:76px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.94);border-bottom:2px solid #111;backdrop-filter:blur(8px)}
+.brand{display:flex;align-items:center;gap:8px}.bee{font-size:30px}.title{font-size:19px;font-weight:1000;letter-spacing:-.04em}.sub{font-size:10px;font-weight:800;opacity:.62}
+.hud{display:flex;gap:5px}.pill{min-width:65px;padding:7px 8px;border:2px solid #111;border-radius:999px;background:white;text-align:center;font-size:11px;font-weight:1000}
+#game{position:absolute;inset:76px 0 0;background:linear-gradient(#fffdf5,#ffe8ad)}
+#lanes{position:absolute;inset:0;display:grid;grid-template-columns:repeat(4,1fr);overflow:hidden}
+.lane{position:relative;border-right:1px solid rgba(0,0,0,.13);overflow:hidden}.lane:last-child{border-right:0}.lane.touch{background:rgba(255,216,77,.28)}
+#judgeLine{position:absolute;left:0;right:0;bottom:14%;height:5px;background:#111;box-shadow:0 0 0 3px #fff,0 0 0 5px #111;z-index:8}
+#judgeText{position:absolute;z-index:9;left:50%;bottom:calc(14% + 14px);transform:translateX(-50%);padding:4px 9px;background:#111;color:#fff;border-radius:999px;font-size:10px;font-weight:1000}
+.tile{position:absolute;left:7%;width:86%;height:64px;border:3px solid #000;border-radius:13px;background:linear-gradient(#202020,#050505);box-shadow:0 6px 0 rgba(0,0,0,.18);display:grid;place-items:center;color:var(--yellow);font-size:20px;font-weight:1000;will-change:transform}
+.tile.accent{background:linear-gradient(#4b3512,#171006);color:#fff3a6}
+.tile.hit{animation:hit .18s ease-out forwards}.tile.miss{background:#bbb;color:#666;border-color:#777}
+@keyframes hit{100%{opacity:0;transform:scale(.55)}}
+#feedback{position:absolute;z-index:20;top:31%;left:50%;transform:translate(-50%,-50%);font-size:35px;font-weight:1000;letter-spacing:-.05em;text-shadow:0 3px 0 #fff;opacity:0;pointer-events:none}
+#feedback.show{animation:flash .43s ease-out}
+@keyframes flash{15%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}100%{opacity:0;transform:translate(-50%,-72%) scale(1)}}
+#combo{position:absolute;z-index:18;top:18%;left:50%;transform:translateX(-50%);font-size:22px;font-weight:1000;text-shadow:0 2px white}
+#progressWrap{position:absolute;z-index:12;left:12px;right:12px;bottom:5%;height:9px;background:rgba(255,255,255,.8);border:2px solid #111;border-radius:999px;overflow:hidden}
+#progress{height:100%;width:0;background:#111}
+#overlay{position:absolute;inset:0;z-index:60;display:grid;place-items:center;padding:20px;background:rgba(255,244,183,.82);backdrop-filter:blur(8px)}
+.card{width:min(100%,430px);max-height:92dvh;overflow:auto;padding:22px;border:3px solid #111;border-radius:25px;background:rgba(255,255,255,.96);box-shadow:0 8px 0 #111;text-align:center}
+.card h1{font-size:31px;line-height:1.05;letter-spacing:-.06em;margin:4px 0 10px}.card p{font-size:13px;line-height:1.55;margin:8px 0 13px}
+.realbadge{display:inline-block;padding:5px 9px;border:2px solid #111;border-radius:999px;background:#eaffcf;font-size:11px;font-weight:1000}
+.legend{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:13px 0}.key{padding:10px 2px;border:2px solid #111;border-radius:12px;background:#fff;font-weight:1000;box-shadow:0 4px 0 #111}
+select{width:100%;padding:10px;border:2px solid #111;border-radius:12px;background:#fff;font-weight:900;margin:4px 0 9px}
+.btn{width:100%;padding:14px 12px;border:3px solid #111;border-radius:15px;background:var(--yellow);box-shadow:0 5px 0 #111;font-size:18px;font-weight:1000;cursor:pointer}.btn:active{transform:translateY(3px);box-shadow:0 2px 0 #111}
+.small{font-size:10px!important;opacity:.66}.source{padding:9px;border-radius:12px;background:#f4f4f4;text-align:left;font-size:10px;line-height:1.45}
+#loading{display:none;font-size:12px;font-weight:900;margin:9px 0}.dot{display:inline-block;animation:b 1s infinite alternate}@keyframes b{to{transform:translateY(-4px)}}
+#result{display:none}.scorebig{font-size:55px;font-weight:1000;letter-spacing:-.05em}.stars{font-size:28px;letter-spacing:3px}
+.ecocard{margin:12px 0;padding:12px;border:2px solid #111;border-radius:15px;background:#fff7c4;text-align:left}.ecocard b{font-size:14px}
+#unsupported{display:none;color:#a00;font-weight:900}
+</style>
+</head>
+<body>
+<div id="app">
+<header>
+  <div class="brand"><div class="bee">🐝</div><div><div class="title">왕벌의 비행 · 리듬 타일</div><div class="sub">실제 연주 음원에 맞춰 플레이</div></div></div>
+  <div class="hud"><div class="pill">점수 <span id="score">0</span></div><div class="pill">❤️ <span id="lives">5</span></div></div>
+</header>
+
+<main id="game">
+  <div id="lanes">
+    <div class="lane" data-lane="0"></div><div class="lane" data-lane="1"></div>
+    <div class="lane" data-lane="2"></div><div class="lane" data-lane="3"></div>
+  </div>
+  <div id="combo"></div><div id="feedback"></div>
+  <div id="judgeText">판정선에서 터치!</div><div id="judgeLine"></div>
+  <div id="progressWrap"><div id="progress"></div></div>
+</main>
+
+<div id="overlay">
+  <section class="card" id="startCard">
+    <div style="font-size:52px">🐝🎼</div>
+    <div class="realbadge">✓ 실제 「왕벌의 비행」 연주 음원 사용</div>
+    <h1>뒤영벌처럼<br>빠르게 날아볼까?</h1>
+    <p>림스키코르사코프의 <b>「왕벌의 비행」 실제 관현악 연주</b>가 재생됩니다.
+    타일이 판정선에 닿을 때 같은 줄을 터치하세요.</p>
+    <div class="legend"><div class="key">D<br>1</div><div class="key">F<br>2</div><div class="key">J<br>3</div><div class="key">K<br>4</div></div>
+    <select id="difficulty">
+      <option value="easy">연습 모드 · 4분음표 중심</option>
+      <option value="normal" selected>보통 모드 · 8분음표 중심</option>
+      <option value="hard">왕벌 모드 · 16분음표 중심</option>
+    </select>
+    <button class="btn" id="startBtn">음악 불러오고 시작</button>
+    <div id="loading">음악을 불러오는 중 <span class="dot">●</span></div>
+    <div id="unsupported">이 브라우저에서 음원 재생이 어렵습니다. 최신 Chrome/Safari로 열어주세요.</div>
+    <p class="small">모바일: 화면 터치 · PC: D/F/J/K 또는 1/2/3/4</p>
+    <div class="source">
+      <b>음원:</b> Nikolai Rimsky-Korsakov, “Flight of the Bumblebee”<br>
+      <b>연주:</b> U.S. Army Band · Wikimedia Commons 공개 음원<br>
+      <b>게임 기준:</b> Vivace ♩≈144, 2/4 박자의 빠른 흐름을 난이도별로 단순화
+    </div>
+  </section>
+
+  <section class="card" id="result">
+    <div style="font-size:48px">🏁🐝</div>
+    <h1>비행 완료!</h1>
+    <div class="scorebig" id="finalScore">0</div>
+    <div class="stars" id="stars">⭐⭐⭐</div>
+    <p id="resultText"></p>
+    <div class="ecocard">
+      <b>🌼 생태학적 비밀</b><br>
+      뒤영벌은 날 때 사용하는 가슴의 비행근을 진동시켜 꽃에서 꽃가루를 털어내는
+      <b>진동수분</b>도 할 수 있어요.
+    </div>
+    <button class="btn" id="restartBtn">다시 도전</button>
+  </section>
+</div>
+
+<audio id="music" preload="auto" playsinline>
+  <source src="https://upload.wikimedia.org/wikipedia/commons/transcoded/c/c0/Rimsky-Korsakov_-_flight_of_the_bumblebee.oga/Rimsky-Korsakov_-_flight_of_the_bumblebee.oga.mp3" type="audio/mpeg">
+  <source src="https://commons.wikimedia.org/wiki/Special:Redirect/file/Rimsky-Korsakov_-_flight_of_the_bumblebee.oga" type="audio/ogg">
+</audio>
+
+<script>
+(() => {
+const music=document.getElementById('music'),lanes=[...document.querySelectorAll('.lane')],
+overlay=document.getElementById('overlay'),scoreEl=document.getElementById('score'),
+livesEl=document.getElementById('lives'),comboEl=document.getElementById('combo'),
+feedback=document.getElementById('feedback'),progress=document.getElementById('progress'),
+diff=document.getElementById('difficulty'),loading=document.getElementById('loading');
+
+let running=false,raf=0,tiles=[],chart=[],score=0,combo=0,lives=5,judged=0;
+let hitY=0,leadTime=1.7,fallDistance=700,difficulty='normal';
+
+const lanePattern=[
+  3,2,1,0,1,2,3,2, 1,0,1,2,3,2,1,0,
+  2,3,2,1,0,1,2,3, 1,2,1,0,1,2,3,2,
+  0,1,2,3,2,1,0,1, 3,2,1,0,1,2,3,0,
+  2,1,0,1,2,3,2,1, 0,2,3,1,2,0,1,3
+];
+
+function config(){
+  difficulty=diff.value;
+  if(difficulty==='easy'){lives=8;leadTime=1.9}
+  else if(difficulty==='hard'){lives=5;leadTime=1.45}
+  else{lives=6;leadTime=1.7}
+  livesEl.textContent=lives;
+}
+function makeChart(){
+  chart=[];
+  // Commons recording is ~79.3 s. The score is commonly marked Vivace, quarter note ≈ 144.
+  // Fit an integer number of quarter-note beats to the actual loaded recording duration
+  // so the visual grid does not drift away from this specific performance.
+  const duration=Number.isFinite(music.duration)?music.duration:79.307755;
+  const quarterCount=Math.max(1,Math.round(duration/(60/144)));
+  const q=duration/quarterCount;
+  let spacing=q;
+  if(difficulty==='normal') spacing=q/2;
+  if(difficulty==='hard') spacing=q/4;
+  const start=.18,end=Math.max(start,duration-.25);
+  let i=0;
+  for(let t=start;t<end;t+=spacing){
+    // reduce density at a few phrase transitions, while staying on the time grid
+    if(difficulty!=='hard' && i>0 && i%32===31){i++;continue}
+    chart.push({time:t,lane:lanePattern[i%lanePattern.length],accent:(i%8===0)});
+    i++;
+  }
+}
+function clearTiles(){
+  cancelAnimationFrame(raf);tiles.forEach(t=>t.el.remove());tiles=[];chart=[];
+  score=0;combo=0;judged=0;scoreEl.textContent='0';comboEl.textContent='';progress.style.width='0%';
+}
+function buildTiles(){
+  hitY=document.getElementById('game').clientHeight*.86;
+  fallDistance=Math.max(520,document.getElementById('game').clientHeight*.98);
+  chart.forEach((n,i)=>{
+    const el=document.createElement('div');el.className='tile'+(n.accent?' accent':'');el.textContent=n.accent?'🐝':'♪';
+    lanes[n.lane].appendChild(el);
+    tiles.push({time:n.time,lane:n.lane,el,hit:false,miss:false});
+  });
+}
+function flash(text){
+  feedback.textContent=text;feedback.classList.remove('show');void feedback.offsetWidth;feedback.classList.add('show');
+}
+function hit(t,pts,label){
+  t.hit=true;judged++;combo++;score+=pts+Math.min(combo,60)*3;
+  scoreEl.textContent=score;comboEl.textContent=combo>=4?combo+' COMBO!':'';
+  flash(label);t.el.classList.add('hit');setTimeout(()=>t.el.remove(),190);
+  if(navigator.vibrate)navigator.vibrate(10);
+}
+function miss(t){
+  if(t.hit||t.miss)return;t.miss=true;judged++;combo=0;comboEl.textContent='';
+  lives--;livesEl.textContent=lives;t.el.classList.add('miss');flash('MISS');
+  setTimeout(()=>t.el.remove(),190);
+  if(lives<=0)finish(false);
+}
+function press(lane){
+  if(!running)return;
+  lanes[lane].classList.add('touch');setTimeout(()=>lanes[lane].classList.remove('touch'),75);
+  const now=music.currentTime;
+  const cand=tiles.filter(t=>!t.hit&&!t.miss&&t.lane===lane)
+    .sort((a,b)=>Math.abs(a.time-now)-Math.abs(b.time-now))[0];
+  if(!cand){flash('MISS');combo=0;comboEl.textContent='';return}
+  const dt=Math.abs(cand.time-now);
+  if(dt<=.075)hit(cand,300,'PERFECT!');
+  else if(dt<=.13)hit(cand,180,'GREAT!');
+  else if(dt<=.20)hit(cand,90,'GOOD');
+  else{flash('MISS');combo=0;comboEl.textContent=''}
+}
+function loop(){
+  if(!running)return;
+  const now=music.currentTime, dur=music.duration||79.3;
+  progress.style.width=Math.min(100,now/dur*100)+'%';
+  for(const t of tiles){
+    if(t.hit||t.miss)continue;
+    const dt=t.time-now;
+    const y=hitY-(dt/leadTime)*fallDistance-32;
+    t.el.style.transform=`translateY(${y}px)`;
+    if(now-t.time>.22)miss(t);
+  }
+  if(music.ended || now>=dur-.03)finish(true);
+  else raf=requestAnimationFrame(loop);
+}
+function resultRating(){
+  const max=Math.max(1,chart.length*300),p=Math.min(1,score/max);
+  return {p,stars:p>.72?'⭐⭐⭐':p>.42?'⭐⭐':'⭐'};
+}
+function finish(completed){
+  if(!running)return;
+  running=false;cancelAnimationFrame(raf);music.pause();
+  setTimeout(()=>{
+    const r=resultRating();
+    document.getElementById('finalScore').textContent=score;
+    document.getElementById('stars').textContent=r.stars;
+    document.getElementById('resultText').textContent=completed
+      ?(r.p>.72?'왕벌처럼 빠른 비행 성공! 음악의 흐름을 잘 따라갔어요.':'좋아요! 한 번 더 하면 더 정확하게 날 수 있어요.')
+      :'비행 에너지가 떨어졌어요. 다시 도전해 볼까요?';
+    document.getElementById('startCard').style.display='none';
+    document.getElementById('result').style.display='block';
+    overlay.style.display='grid';
+  },250);
+}
+async function ensureAudio(){
+  loading.style.display='block';
+  document.getElementById('unsupported').style.display='none';
+  try{
+    if(music.readyState<1){
+      await new Promise((resolve,reject)=>{
+        const ok=()=>{cleanup();resolve()},bad=()=>{cleanup();reject(new Error('audio'))};
+        const cleanup=()=>{music.removeEventListener('loadedmetadata',ok);music.removeEventListener('error',bad)};
+        music.addEventListener('loadedmetadata',ok,{once:true});music.addEventListener('error',bad,{once:true});music.load();
+        setTimeout(()=>{if(music.readyState>=1)ok()},3500);
+      });
+    }
+    loading.style.display='none';return true;
+  }catch(e){
+    loading.style.display='none';document.getElementById('unsupported').style.display='block';return false;
+  }
+}
+async function start(){
+  config();clearTiles();
+  if(!await ensureAudio())return;
+  music.pause();music.currentTime=0;music.playbackRate=1;
+  makeChart();buildTiles();
+  overlay.style.display='none';
+  try{await music.play()}catch(e){overlay.style.display='grid';document.getElementById('unsupported').style.display='block';return}
+  running=true;raf=requestAnimationFrame(loop);
+}
+document.getElementById('startBtn').addEventListener('click',start);
+document.getElementById('restartBtn').addEventListener('click',()=>{document.getElementById('result').style.display='none';document.getElementById('startCard').style.display='block';start()});
+lanes.forEach(l=>l.addEventListener('pointerdown',e=>{e.preventDefault();press(+l.dataset.lane)}));
+const keys={KeyD:0,KeyF:1,KeyJ:2,KeyK:3,Digit1:0,Digit2:1,Digit3:2,Digit4:3};
+addEventListener('keydown',e=>{if(!e.repeat&&keys[e.code]!==undefined)press(keys[e.code])});
+addEventListener('resize',()=>{hitY=document.getElementById('game').clientHeight*.86;fallDistance=Math.max(520,document.getElementById('game').clientHeight*.98)});
+music.addEventListener('ended',()=>finish(true));
+})();
+</script>
+</body>
+</html>
