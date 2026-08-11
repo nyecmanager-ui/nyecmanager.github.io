@@ -41,6 +41,23 @@ select{width:100%;padding:10px;border:2px solid #111;border-radius:12px;backgrou
 #result{display:none}.scorebig{font-size:55px;font-weight:1000;letter-spacing:-.05em}.stars{font-size:28px;letter-spacing:3px}
 .ecocard{margin:12px 0;padding:12px;border:2px solid #111;border-radius:15px;background:#fff7c4;text-align:left}.ecocard b{font-size:14px}
 #unsupported{display:none;color:#a00;font-weight:900}
+
+#countdownOverlay{
+  position:absolute;inset:0;z-index:55;display:none;place-items:center;
+  background:rgba(255,244,183,.72);backdrop-filter:blur(6px);pointer-events:none
+}
+#countdownNumber{
+  font-size:clamp(92px,30vw,170px);font-weight:1000;line-height:1;
+  color:#111;text-shadow:0 6px 0 #fff,0 11px 0 rgba(0,0,0,.16);
+  animation:countPop .72s ease-out
+}
+#countdownNumber.go{font-size:clamp(64px,20vw,110px)}
+@keyframes countPop{
+  0%{opacity:0;transform:scale(.45)}
+  35%{opacity:1;transform:scale(1.15)}
+  100%{opacity:1;transform:scale(1)}
+}
+
 </style>
 </head>
 <body>
@@ -66,7 +83,7 @@ select{width:100%;padding:10px;border:2px solid #111;border-radius:12px;backgrou
     <div class="realbadge">✓ 실제 「왕벌의 비행」 연주 음원 사용</div>
     <h1>뒤영벌처럼<br>빠르게 날아볼까?</h1>
     <p>림스키코르사코프의 <b>「왕벌의 비행」 실제 관현악 연주</b>가 재생됩니다.
-    타일이 판정선에 닿을 때 같은 줄을 터치하세요.</p>
+    타일이 판정선에 닿을 때 같은 줄을 터치하세요.<br><b>시작 버튼을 누르면 3초 카운트다운 후 게임이 시작됩니다.</b></p>
     <div class="legend"><div class="key">D<br>1</div><div class="key">F<br>2</div><div class="key">J<br>3</div><div class="key">K<br>4</div></div>
     <select id="difficulty">
       <option value="easy">연습 모드 · 4분음표 중심</option>
@@ -99,6 +116,11 @@ select{width:100%;padding:10px;border:2px solid #111;border-radius:12px;backgrou
   </section>
 </div>
 
+
+<div id="countdownOverlay" aria-live="assertive" aria-label="게임 시작 카운트다운">
+  <div id="countdownNumber">3</div>
+</div>
+
 <audio id="music" preload="auto" playsinline>
   <source src="https://upload.wikimedia.org/wikipedia/commons/transcoded/c/c0/Rimsky-Korsakov_-_flight_of_the_bumblebee.oga/Rimsky-Korsakov_-_flight_of_the_bumblebee.oga.mp3" type="audio/mpeg">
   <source src="https://commons.wikimedia.org/wiki/Special:Redirect/file/Rimsky-Korsakov_-_flight_of_the_bumblebee.oga" type="audio/ogg">
@@ -110,7 +132,7 @@ const music=document.getElementById('music'),lanes=[...document.querySelectorAll
 overlay=document.getElementById('overlay'),scoreEl=document.getElementById('score'),
 livesEl=document.getElementById('lives'),comboEl=document.getElementById('combo'),
 feedback=document.getElementById('feedback'),progress=document.getElementById('progress'),
-diff=document.getElementById('difficulty'),loading=document.getElementById('loading');
+diff=document.getElementById('difficulty'),loading=document.getElementById('loading'),countdownOverlay=document.getElementById('countdownOverlay'),countdownNumber=document.getElementById('countdownNumber');
 
 let running=false,raf=0,tiles=[],chart=[],score=0,combo=0,lives=5,judged=0;
 let hitY=0,leadTime=1.7,fallDistance=700,difficulty='normal';
@@ -223,6 +245,28 @@ function finish(completed){
     overlay.style.display='grid';
   },250);
 }
+
+function sleep(ms){return new Promise(resolve=>setTimeout(resolve,ms))}
+async function runCountdown(){
+  countdownOverlay.style.display='grid';
+  for(const n of ['3','2','1']){
+    countdownNumber.className='';
+    countdownNumber.textContent=n;
+    void countdownNumber.offsetWidth;
+    countdownNumber.style.animation='none';
+    void countdownNumber.offsetWidth;
+    countdownNumber.style.animation='countPop .72s ease-out';
+    await sleep(1000);
+  }
+  countdownNumber.className='go';
+  countdownNumber.textContent='GO!';
+  countdownNumber.style.animation='none';
+  void countdownNumber.offsetWidth;
+  countdownNumber.style.animation='countPop .5s ease-out';
+  await sleep(450);
+  countdownOverlay.style.display='none';
+}
+
 async function ensureAudio(){
   loading.style.display='block';
   document.getElementById('unsupported').style.display='none';
@@ -243,11 +287,30 @@ async function ensureAudio(){
 async function start(){
   config();clearTiles();
   if(!await ensureAudio())return;
-  music.pause();music.currentTime=0;music.playbackRate=1;
-  makeChart();buildTiles();
+
+  music.pause();
+  music.currentTime=0;
+  music.playbackRate=1;
+
+  makeChart();
+  buildTiles();
+
   overlay.style.display='none';
-  try{await music.play()}catch(e){overlay.style.display='grid';document.getElementById('unsupported').style.display='block';return}
-  running=true;raf=requestAnimationFrame(loop);
+
+  // 3초 카운트다운이 끝난 뒤에 음악과 타일을 동시에 시작
+  await runCountdown();
+
+  try{
+    await music.play();
+  }catch(e){
+    countdownOverlay.style.display='none';
+    overlay.style.display='grid';
+    document.getElementById('unsupported').style.display='block';
+    return;
+  }
+
+  running=true;
+  raf=requestAnimationFrame(loop);
 }
 document.getElementById('startBtn').addEventListener('click',start);
 document.getElementById('restartBtn').addEventListener('click',()=>{document.getElementById('result').style.display='none';document.getElementById('startCard').style.display='block';start()});
