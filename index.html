@@ -83,7 +83,7 @@ select{width:100%;padding:10px;border:2px solid #111;border-radius:12px;backgrou
     <div class="realbadge">✓ 실제 「왕벌의 비행」 연주 음원 사용</div>
     <h1>뒤영벌처럼<br>빠르게 날아볼까?</h1>
     <p>림스키코르사코프의 <b>「왕벌의 비행」 실제 관현악 연주</b>가 재생됩니다.
-    타일이 판정선에 닿을 때 같은 줄을 터치하세요.<br><b>시작 버튼을 누르면 3초 카운트다운 후 게임이 시작됩니다.</b></p>
+    타일이 판정선에 닿을 때 같은 줄을 터치하세요.<br><b>시작 버튼을 누르면 3초 카운트다운 후, 첫 타일이 화면 맨 위에서부터 내려옵니다.</b></p>
     <div class="legend"><div class="key">D<br>1</div><div class="key">F<br>2</div><div class="key">J<br>3</div><div class="key">K<br>4</div></div>
     <select id="difficulty">
       <option value="easy">연습 모드 · 4분음표 중심</option>
@@ -162,7 +162,7 @@ function makeChart(){
   let spacing=q;
   if(difficulty==='normal') spacing=q/2;
   if(difficulty==='hard') spacing=q/4;
-  const start=.18,end=Math.max(start,duration-.25);
+  const start=leadTime,end=Math.max(start,duration-.25);
   let i=0;
   for(let t=start;t<end;t+=spacing){
     // reduce density at a few phrase transitions, while staying on the time grid
@@ -177,7 +177,7 @@ function clearTiles(){
 }
 function buildTiles(){
   hitY=document.getElementById('game').clientHeight*.86;
-  fallDistance=Math.max(520,document.getElementById('game').clientHeight*.98);
+  fallDistance=Math.max(1,hitY-32);
   chart.forEach((n,i)=>{
     const el=document.createElement('div');el.className='tile'+(n.accent?' accent':'');el.textContent=n.accent?'🐝':'♪';
     lanes[n.lane].appendChild(el);
@@ -317,7 +317,7 @@ document.getElementById('restartBtn').addEventListener('click',()=>{document.get
 lanes.forEach(l=>l.addEventListener('pointerdown',e=>{e.preventDefault();press(+l.dataset.lane)}));
 const keys={KeyD:0,KeyF:1,KeyJ:2,KeyK:3,Digit1:0,Digit2:1,Digit3:2,Digit4:3};
 addEventListener('keydown',e=>{if(!e.repeat&&keys[e.code]!==undefined)press(keys[e.code])});
-addEventListener('resize',()=>{hitY=document.getElementById('game').clientHeight*.86;fallDistance=Math.max(520,document.getElementById('game').clientHeight*.98)});
+addEventListener('resize',()=>{hitY=document.getElementById('game').clientHeight*.86;fallDistance=Math.max(1,hitY-32)});
 music.addEventListener('ended',()=>finish(true));
 })();
 </script>
